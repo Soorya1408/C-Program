@@ -1,0 +1,44 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
+typedef struct {
+    int val;
+    int idx;
+} Element;
+
+// Comparator to sort by value. If values are equal, sort by index.
+int compare(const void* a, const void* b) {
+    Element* e1 = (Element*)a;
+    Element* e2 = (Element*)b;
+    if (e1->val != e2->val) {
+        return (e1->val > e2->val) - (e1->val < e2->val);
+    }
+    return e1->idx - e2->idx;
+}
+
+bool containsNearbyDuplicate(int* nums, int numsSize, int k) {
+    if (numsSize <= 1 || k <= 0) return false;
+
+    // Create an array of structs to hold values and their original positions
+    Element* arr = (Element*)malloc(numsSize * sizeof(Element));
+    for (int i = 0; i < numsSize; i++) {
+        arr[i].val = nums[i];
+        arr[i].idx = i;
+    }
+
+    // Sort the array
+    qsort(arr, numsSize, sizeof(Element), compare);
+
+    // Identical numbers are now side-by-side. Just check their index distance.
+    for (int i = 0; i < numsSize - 1; i++) {
+        if (arr[i].val == arr[i + 1].val) {
+            if (arr[i + 1].idx - arr[i].idx <= k) {
+                free(arr);
+                return true;
+            }
+        }
+    }
+
+    free(arr);
+    return false;
+}
