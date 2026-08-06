@@ -1,0 +1,113 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+// Simple fixed hash table for words (since word length <= 30)
+typedef struct {
+    char key[31];
+    int count;
+} WordMap;
+
+// Helper function to find or insert a word into a local tracking array
+int find_word(char** words, int wordsSize, const char* str) {
+    for (int i = 0; i < wordsSize; i++) {
+        if (strcmp(words[i], str) == 0) return i;
+    }
+    return -1;
+}
+
+int* findSubstring(char* s, char** words, int wordsSize, int* returnSize) {
+    *returnSize = 0;
+    if (!s || wordsSize == 0) return NULL;
+
+    int sLen = strlen(s);
+    int wordLen = strlen(words[0]);
+    int totalLen = wordsSize * wordLen;
+
+    if (sLen < totalLen) return NULL;
+
+    int* result = (int*)malloc(sizeof(int) * sLen);
+    
+    // De-duplicate unique words to form a frequency dictionary
+    char** uniqueWords = (char**)malloc(sizeof(char*) * wordsSize);
+    int* targetCounts = (int*)calloc(wordsSize, sizeof(int));
+    int uniqueCount = 0;
+
+    for (int i = 0; i < wordsSize; i++) {
+        int idx = -1;
+        for (int j = 0; j < uniqueCount; j++) {
+            if (strcmp(uniqueWords[j], words[i]) == 0) {
+                idx = j;
+                break;
+            }
+        }
+        if (idx == -1) {
+            uniqueWords[uniqueCount] = words[i];
+            targetCounts[uniqueCount] = 1;
+            uniqueCount++;
+        } else {
+            targetCounts[idx]++;
+        }
+    }
+
+    int* currCounts = (int*)malloc(sizeof(int) * uniqueCount);
+    char* tempWord = (char*)malloc(sizeof(char) * (wordLen + 1));
+    tempWord[wordLen] = '\0';
+
+    // Sliding Window
+    for (int i = 0; i < wordLen; i++) {
+        int left = i, right = i, matchedWords = 0;
+        memset(currCounts, 0, sizeof(int) * uniqueCount);
+
+        while (right + wordLen <= sLen) {
+            strncpy(tempWord, s + right, wordLen);
+            right += wordLen;
+
+            int idx = -1;
+            for (int j = 0; j < uniqueCount; j++) {
+                if (strcmp(uniqueWords[j], tempWord) == 0) {
+                    idx = j;
+                    break;
+                }
+            }
+
+            if (idx != -1) {
+                currCounts[idx]++;
+                matchedWords++;
+
+                while (currCounts[idx] > targetCounts[idx]) {
+                    char* leftWord = (char*)malloc(sizeof(char) * (wordLen + 1));
+                    strncpy(leftWord, s + left, wordLen);
+                    leftWord[wordLen] = '\0';
+
+                    int lIdx = -1;
+                    for (int j = 0; j < uniqueCount; j++) {
+                        if (strcmp(uniqueWords[j], leftWord) == 0) {
+                            lIdx = j;
+                            break;
+                        }
+                    }
+                    currCounts[lIdx]--;
+                    matchedWords--;
+                    left += wordLen;
+                    free(leftWord);
+                }
+
+                if (matchedWords == wordsSize) {
+                    result[(*returnSize)++] = left;
+                }
+            } else {
+                memset(currCounts, 0, sizeof(int) * uniqueCount);
+                matchedWords = 0;
+                left = right;
+            }
+        }
+    }
+
+    free(uniqueWords);
+    free(targetCounts);
+    free(currCounts);
+    free(tempWord);
+
+    return result;
+}
