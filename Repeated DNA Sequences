@@ -1,0 +1,51 @@
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+char** findRepeatedDnaSequences(char* s, int* returnSize) {
+    *returnSize = 0;
+    int len = strlen(s);
+    if (len < 10) return NULL;
+
+    // Map characters to 2-bit values: A=0, C=1, G=2, T=3
+    int map[26];
+    map['A' - 'A'] = 0;
+    map['C' - 'A'] = 1;
+    map['G' - 'A'] = 2;
+    map['T' - 'A'] = 3;
+
+    // There are 4^10 = 1,048,576 possible 10-letter sequences.
+    // Use a 1MB state array: 0 = unseen, 1 = seen once, 2 = added to result
+    unsigned char* seen = (unsigned char*)calloc(1048576, sizeof(unsigned char));
+    
+    // Allocate maximum possible capacity for results
+    char** result = (char**)malloc((len - 9) * sizeof(char*));
+    
+    int val = 0;
+    // Initialize the first 9 characters into the rolling 20-bit integer
+    for (int i = 0; i < 9; i++) {
+        val = (val << 2) | map[s[i] - 'A'];
+    }
+
+    // Slide the window across the rest of the string
+    for (int i = 9; i < len; i++) {
+        // Clear top 2 bits, shift left by 2, and add new character code
+        val = ((val << 2) & 0xFFFFF) | map[s[i] - 'A'];
+        
+        if (seen[val] == 1) {
+            // Found a duplicate: copy the 10-letter substring
+            result[*returnSize] = (char*)malloc(11 * sizeof(char));
+            strncpy(result[*returnSize], &s[i - 9], 10);
+            result[*returnSize][10] = '\0';
+            (*returnSize)++;
+            seen[val] = 2; // Mark as added to prevent duplicate results
+        } else if (seen[val] == 0) {
+            seen[val] = 1; // Mark as seen for the first time
+        }
+    }
+
+    free(seen);
+    return result;
+}
