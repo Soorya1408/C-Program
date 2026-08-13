@@ -1,0 +1,31 @@
+
+int* preorderTraversal(struct TreeNode* root, int* returnSize) {
+    *returnSize = 0;
+    if (root == NULL) {
+        return NULL;
+    }
+    
+    // Constraints state up to 100 nodes
+    int* result = (int*)malloc(100 * sizeof(int));
+    struct TreeNode* stack[100];
+    int top = -1;
+    
+    // Push the root node onto the stack
+    stack[++top] = root;
+    
+    while (top >= 0) {
+        // Pop the top node
+        struct TreeNode* curr = stack[top--];
+        result[(*returnSize)++] = curr->val;
+        
+        // Push right child first so left child is processed first (LIFO)
+        if (curr->right != NULL) {
+            stack[++top] = curr->right;
+        }
+        if (curr->left != NULL) {
+            stack[++top] = curr->left;
+        }
+    }
+    
+    return result;
+}
