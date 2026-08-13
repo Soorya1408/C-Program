@@ -1,0 +1,56 @@
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* postorderTraversal(struct TreeNode* root, int* returnSize) {
+    *returnSize = 0;
+    if (root == NULL) {
+        return NULL;
+    }
+    
+    // Constraints state total nodes are between 0 and 100
+    int* result = (int*)malloc(101 * sizeof(int));
+    struct TreeNode** stack = (struct TreeNode**)malloc(101 * sizeof(struct TreeNode*));
+    int top = -1;
+    
+    // Push the root node onto the stack
+    stack[++top] = root;
+    
+    // Step 1: Generate Root -> Right -> Left sequence
+    while (top >= 0) {
+        struct TreeNode* curr = stack[top--];
+        result[*returnSize] = curr->val;
+        (*returnSize)++;
+        
+        // Push left child first so right child is processed first
+        if (curr->left != NULL) {
+            stack[++top] = curr->left;
+        }
+        if (curr->right != NULL) {
+            stack[++top] = curr->right;
+        }
+    }
+    
+    // Step 2: Reverse the array to get Left -> Right -> Root (Postorder)
+    int i = 0;
+    int j = (*returnSize) - 1;
+    while (i < j) {
+        int temp = result[i];
+        result[i] = result[j];
+        result[j] = temp;
+        i++;
+        j--;
+    }
+    
+    // Free the stack allocation before returning the result
+    free(stack);
+    
+    return result;
+}
