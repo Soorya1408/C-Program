@@ -1,0 +1,37 @@
+#include <stdlib.h>
+
+
+// Helper function to count total nodes so we can allocate exact memory
+int countNodes(struct TreeNode* root) {
+    if (root == NULL) return 0;
+    return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+// Helper function to perform the actual inorder traversal (Left -> Root -> Right)
+void traverse(struct TreeNode* root, int* result, int* index) {
+    if (root == NULL) return;
+    
+    traverse(root->left, result, index);  // Visit Left Subtree
+    result[(*index)++] = root->val;       // Visit Root Node
+    traverse(root->right, result, index); // Visit Right Subtree
+}
+
+int* inorderTraversal(struct TreeNode* root, int* returnSize) {
+    // 1. Find total number of nodes
+    int total_nodes = countNodes(root);
+    *returnSize = total_nodes;
+    
+    // 2. Handle empty tree edge case
+    if (total_nodes == 0) {
+        return NULL;
+    }
+    
+    // 3. Allocate memory for the output array
+    int* result = (int*)malloc(total_nodes * sizeof(int));
+    
+    // 4. Fill the array using the traversal helper
+    int index = 0;
+    traverse(root, result, &index);
+    
+    return result;
+}
