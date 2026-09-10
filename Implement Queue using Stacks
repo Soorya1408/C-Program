@@ -1,0 +1,92 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
+// Stack structure definition
+typedef struct {
+    int *data;
+    int top;
+    int capacity;
+} Stack;
+
+Stack* createStack(int capacity) {
+    Stack *s = (Stack*) malloc(sizeof(Stack));
+    s->capacity = capacity;
+    s->top = -1;
+    s->data = (int*) malloc(s->capacity * sizeof(int));
+    return s;
+}
+
+bool isStackEmpty(Stack *s) {
+    return s->top == -1;
+}
+
+void stackPush(Stack *s, int x) {
+    if (s->top == s->capacity - 1) {
+        s->capacity *= 2;
+        s->data = (int*) realloc(s->data, s->capacity * sizeof(int));
+    }
+    s->data[++(s->top)] = x;
+}
+
+int stackPop(Stack *s) {
+    if (isStackEmpty(s)) return -1;
+    return s->data[(s->top)--];
+}
+
+int stackPeek(Stack *s) {
+    if (isStackEmpty(s)) return -1;
+    return s->data[s->top];
+}
+
+void freeStack(Stack *s) {
+    free(s->data);
+    free(s);
+}
+
+// MyQueue structure using two stacks
+typedef struct {
+    Stack *s_in;
+    Stack *s_out;
+} MyQueue;
+
+MyQueue* myQueueCreate() {
+    MyQueue *obj = (MyQueue*) malloc(sizeof(MyQueue));
+    obj->s_in = createStack(100);
+    obj->s_out = createStack(100);
+    return obj;
+}
+
+void myQueuePush(MyQueue* obj, int x) {
+    stackPush(obj->s_in, x);
+}
+
+// Helper to transfer elements from s_in to s_out if s_out is empty
+void transfer(MyQueue* obj) {
+    if (isStackEmpty(obj->s_out)) {
+        while (!isStackEmpty(obj->s_in)) {
+            stackPush(obj->s_out, stackPop(obj->s_in));
+        }
+    }
+}
+
+int myQueuePop(MyQueue* obj) {
+    transfer(obj);
+    return stackPop(obj->s_out);
+}
+
+int myQueuePeek(MyQueue* obj) {
+    transfer(obj);
+    return stackPeek(obj->s_out);
+}
+
+bool myQueueEmpty(MyQueue* obj) {
+    return isStackEmpty(obj->s_in) && isStackEmpty(obj->s_out);
+}
+
+void myQueueFree(MyQueue* obj) {
+    if (obj) {
+        freeStack(obj->s_in);
+        freeStack(obj->s_out);
+        free(obj);
+    }
+}
