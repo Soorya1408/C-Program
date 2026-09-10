@@ -1,0 +1,41 @@
+#include <stdlib.h>
+
+// Helper function to find a specific boundary
+int findBound(int* nums, int numsSize, int target, int findFirst) {
+    int low = 0;
+    int high = numsSize - 1;
+    int bound = -1;
+    
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        
+        if (nums[mid] == target) {
+            bound = mid; // Record the index
+            if (findFirst) {
+                high = mid - 1; // Keep looking left
+            } else {
+                low = mid + 1;  // Keep looking right
+            }
+        } 
+        else if (nums[mid] > target) {
+            high = mid - 1;
+        } 
+        else {
+            low = mid + 1;
+        }
+    }
+    
+    return bound;
+}
+
+int* searchRange(int* nums, int numsSize, int target, int* returnSize) {
+    // Allocate memory for the output array
+    int* result = (int*)malloc(2 * sizeof(int));
+    *returnSize = 2;
+    
+    // Find both bounds
+    result[0] = findBound(nums, numsSize, target, 1);
+    result[1] = findBound(nums, numsSize, target, 0);
+    
+    return result;
+}
