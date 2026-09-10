@@ -1,0 +1,47 @@
+#include <stdlib.h>
+
+int shortestSubarray(int* nums, int numsSize, int k) {
+    // 1. Create a prefix sum array. 
+    // Use long long because the total sum can exceed standard 32-bit integer limits.
+    long long* prefixSum = (long long*)malloc((numsSize + 1) * sizeof(long long));
+    prefixSum[0] = 0;
+    for (int i = 0; i < numsSize; i++) {
+        prefixSum[i + 1] = prefixSum[i] + nums[i];
+    }
+
+    // 2. Allocate space for the deque to store indices
+    int* deque = (int*)malloc((numsSize + 1) * sizeof(int));
+    int head = 0;
+    int tail = 0;
+
+    int minLength = numsSize + 1; // Start with an impossible maximum length
+
+    for (int i = 0; i <= numsSize; i++) {
+        // Condition A: If the current sum minus the oldest sum in our window is >= k,
+        // we found a valid subarray. Update minLength and shrink the window from the left.
+        while (head < tail && prefixSum[i] - prefixSum[deque[head]] >= k) {
+            int currentLength = i - deque[head];
+            if (currentLength < minLength) {
+                minLength = currentLength;
+            }
+            head++; // Remove from front
+        }
+
+        // Condition B: Maintain increasing order in the deque.
+        // If the current prefix sum is smaller than or equal to the sum at the back,
+        // the back element is no longer useful. Remove it from the right.
+        while (head < tail && prefixSum[i] <= prefixSum[deque[tail - 1]]) {
+            tail--; // Remove from back
+        }
+
+        // Add the current index to the deque
+        deque[tail++] = i;
+    }
+
+    // Free allocated memory buffers
+    free(prefixSum);
+    free(deque);
+
+    // If minLength was never updated, no valid subarray exists
+    return (minLength <= numsSize) ? minLength : -1;
+}
