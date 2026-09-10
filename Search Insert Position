@@ -1,0 +1,24 @@
+int searchInsert(int* nums, int numsSize, int target) {
+    int low = 0;
+    int high = numsSize - 1;
+    
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        
+        // Target found
+        if (nums[mid] == target) {
+            return mid;
+        }
+        // Search the right half
+        else if (nums[mid] < target) {
+            low = mid + 1;
+        }
+        // Search the left half
+        else {
+            high = mid - 1;
+        }
+    }
+    
+    // Insertion index
+    return low;
+}
